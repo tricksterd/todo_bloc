@@ -1,4 +1,4 @@
-part of 'filtered_todos_cubit.dart';
+part of 'filtered_todos_bloc.dart';
 
 class FilteredTodosState extends Equatable {
   final List<Todo> filteredTodos;

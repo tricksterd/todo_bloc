@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../cubits/cubits.dart';
+import 'package:todo/blocs/active_todo_count/active_todo_count_bloc.dart';
 
 class TodoHeader extends StatelessWidget {
   const TodoHeader({super.key});
@@ -15,18 +14,9 @@ class TodoHeader extends StatelessWidget {
           'TODO',
           style: TextStyle(fontSize: 40),
         ),
-        BlocListener<TodoListCubit, TodoListState>(
-          listener: (context, state) {
-            final int activeTodoCount =
-                state.todos.where((todo) => !todo.isCompleted).toList().length;
-            context
-                .read<ActiveTodoCountCubit>()
-                .calculateActiveTodoCount(activeTodoCount);
-          },
-          child: Text(
-            '${context.watch<ActiveTodoCountCubit>().state} items left',
-            style: const TextStyle(fontSize: 20, color: Colors.redAccent),
-          ),
+        Text(
+          '${context.watch<ActiveTodoCountBloc>().state.activeTodoCount} items left',
+          style: const TextStyle(fontSize: 20, color: Colors.redAccent),
         )
       ],
     );

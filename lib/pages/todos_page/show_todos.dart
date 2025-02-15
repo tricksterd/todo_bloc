@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:todo/cubits/cubits.dart';
+import '../../blocs/blocs.dart';
 
 import '../../models/todo_model.dart';
 
@@ -9,76 +9,49 @@ class ShowTodos extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final todos = context.watch<FilteredTodosCubit>().state.filteredTodos;
-    return MultiBlocListener(
-      listeners: [
-        BlocListener<TodoListCubit, TodoListState>(listener: (context, state) {
-          context.read<FilteredTodosCubit>().setFilteredTodos(
-                context.read<TodoFilterCubit>().state.filter,
-                state.todos,
-                context.read<TodoSearchCubit>().state.searchTerm,
-              );
-        }),
-        BlocListener<TodoFilterCubit, TodoFilterState>(
-            listener: (context, state) {
-          context.read<FilteredTodosCubit>().setFilteredTodos(
-                state.filter,
-                context.read<TodoListCubit>().state.todos,
-                context.read<TodoSearchCubit>().state.searchTerm,
-              );
-        }),
-        BlocListener<TodoSearchCubit, TodoSearchState>(
-            listener: (context, state) {
-          context.read<FilteredTodosCubit>().setFilteredTodos(
-                context.read<TodoFilterCubit>().state.filter,
-                context.read<TodoListCubit>().state.todos,
-                state.searchTerm,
-              );
-        }),
-      ],
-      child: ListView.separated(
-          primary: false,
-          shrinkWrap: true,
-          itemBuilder: (BuildContext context, int index) {
-            return Dismissible(
-                key: ValueKey(todos[index].id),
-                background: showBackground(0),
-                secondaryBackground: showBackground(1),
-                onDismissed: (_) {
-                  context.read<TodoListCubit>().removeTodo(
-                        todos[index].id,
+    final todos = context.watch<FilteredTodosBloc>().state.filteredTodos;
+    return ListView.separated(
+        primary: false,
+        shrinkWrap: true,
+        itemBuilder: (BuildContext context, int index) {
+          return Dismissible(
+              key: ValueKey(todos[index].id),
+              background: showBackground(0),
+              secondaryBackground: showBackground(1),
+              onDismissed: (_) {
+                context
+                    .read<TodoListBloc>()
+                    .add(RemoveTodoEvent(id: todos[index].id));
+              },
+              confirmDismiss: (_) {
+                return showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: const Text('Are you sure?'),
+                        content: const Text('Do you really want to delete?'),
+                        actions: [
+                          TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text('NO')),
+                          TextButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: const Text('YES')),
+                        ],
                       );
-                },
-                confirmDismiss: (_) {
-                  return showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (context) {
-                        return AlertDialog(
-                          title: const Text('Are you sure?'),
-                          content: const Text('Do you really want to delete?'),
-                          actions: [
-                            TextButton(
-                                onPressed: () => Navigator.pop(context, false),
-                                child: const Text('NO')),
-                            TextButton(
-                                onPressed: () => Navigator.pop(context, true),
-                                child: const Text('YES')),
-                          ],
-                        );
-                      });
-                },
-                child: TodoItem(
-                  todo: todos[index],
-                ));
-          },
-          separatorBuilder: (BuildContext context, int index) {
-            return const Divider(
-              color: Colors.grey,
-            );
-          },
-          itemCount: todos.length),
-    );
+                    });
+              },
+              child: TodoItem(
+                todo: todos[index],
+              ));
+        },
+        separatorBuilder: (BuildContext context, int index) {
+          return const Divider(
+            color: Colors.grey,
+          );
+        },
+        itemCount: todos.length);
   }
 
   Widget showBackground(int direction) {
@@ -153,10 +126,9 @@ class _TodoItemState extends State<TodoItem> {
                           error =
                               textController.text.trim().isEmpty ? true : false;
                           if (!error) {
-                            context.read<TodoListCubit>().updateTodo(
-                                  widget.todo.id,
-                                  textController.text,
-                                );
+                            context.read<TodoListBloc>().add(EditTodoEvent(
+                                id: widget.todo.id,
+                                newDesc: textController.text));
                             Navigator.pop(context);
                           }
                         });
@@ -171,9 +143,9 @@ class _TodoItemState extends State<TodoItem> {
       leading: Checkbox(
           value: widget.todo.isCompleted,
           onChanged: (bool? checked) {
-            context.read<TodoListCubit>().toggleTodo(
-                  widget.todo.id,
-                );
+            context
+                .read<TodoListBloc>()
+                .add(ToggleTodoEvent(id: widget.todo.id));
           }),
       title: Text(widget.todo.desc),
     );

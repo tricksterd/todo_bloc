@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'cubits/cubits.dart';
+import 'blocs/blocs.dart';
 import 'pages/todos_page/todos_page.dart';
 
 void main() {
@@ -16,23 +16,27 @@ class MainApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (context) => TodoFilterCubit(),
+          create: (context) => TodoFilterBloc(),
         ),
         BlocProvider(
-          create: (context) => TodoSearchCubit(),
+          create: (context) => TodoSearchBloc(),
         ),
         BlocProvider(
-          create: (context) => TodoListCubit(),
+          create: (context) => TodoListBloc(),
         ),
         BlocProvider(
-          create: (context) => ActiveTodoCountCubit(
+          create: (context) => ActiveTodoCountBloc(
             initialActiveTodoCount:
-                context.read<TodoListCubit>().state.todos.length,
+                context.read<TodoListBloc>().state.todos.length,
+            todoListBloc: context.read<TodoListBloc>(),
           ),
         ),
         BlocProvider(
-          create: (context) => FilteredTodosCubit(
-            initialTodos: context.read<TodoListCubit>().state.todos,
+          create: (context) => FilteredTodosBloc(
+            initialTodos: context.read<TodoListBloc>().state.todos,
+            todoFilterBloc: context.read<TodoFilterBloc>(),
+            todoSearchBloc: context.read<TodoSearchBloc>(),
+            todoListBloc: context.read<TodoListBloc>(),
           ),
         ),
       ],
